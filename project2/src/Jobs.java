@@ -9,7 +9,7 @@ public class Jobs {
 	String _city;
 	String _state;
 	String _country;
-	Integer _zip;
+	String _zip;
 	Date _start;
 	Date _end;
 	
@@ -82,12 +82,12 @@ public class Jobs {
 		return _country;
 	}
 	
-	public void setZipcode (Integer zipcode)
+	public void setZipcode (String zipcode)
 	{
 		_zip = zipcode;
 	}
 	
-	public Integer getZipcode ()
+	public String getZipcode ()
 	{
 		return _zip;
 	}

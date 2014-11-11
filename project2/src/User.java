@@ -6,7 +6,7 @@ public class User {
 	String _city;
 	String _state;
 	String _country;
-	Integer _zipcode;
+	String _zipcode;
 	String _degree;
 	String _major;
 	Date _gradDate;
@@ -57,12 +57,12 @@ public class User {
 		return _country;
 	}
 	
-	public void setZipcode (Integer zipcode)
+	public void setZipcode (String zipcode)
 	{
 		_zipcode = zipcode;
 	}
 	
-	public Integer getZipcode ()
+	public String getZipcode ()
 	{
 		return _zipcode;
 	}
