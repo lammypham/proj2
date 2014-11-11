@@ -6,8 +6,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 
 public class Project2 {
@@ -35,7 +38,7 @@ public class Project2 {
 		System.out.println("Finish");
 		
 		//currentEmp: yes manage:yes
-		Map<Integer,User> group1 = new HashMap<Integer,User>();
+		Map<Integer,List<User>> group1 = new HashMap<Integer,List<User>>();
 		//currentEmp: yes manage:no
 		Map<Integer,User> group2 = new HashMap<Integer,User>();
 		//currentEmp: no manage:yes
@@ -44,14 +47,22 @@ public class Project2 {
 		Map<Integer,User> group4 = new HashMap<Integer,User>();
 		
 		
+		// using k means to find the distance of 3 nominal attributes
+
+		// find the distance between the nominal attributes for u1
+		// use the weighted distance to find the record of u2 and find smallest value
 		for(Integer uid : _usersMap.keySet())
 		{
 			User u = _usersMap.get(uid);
+			List<User> list1 = new ArrayList();
+			
 			if (u.getCurrentEmp().equalsIgnoreCase("yes"))
 			{
 				if (u.getManage().equalsIgnoreCase("yes"))
 				{
-					group1.put(uid,u);
+					//if match add to list, add record
+					list1.add(u);
+					group1.put(uid, list1);
 				}
 				else
 				{
@@ -68,6 +79,11 @@ public class Project2 {
 					group4.put(uid, u);
 				}
 			}
+		}
+		
+		for (Integer uid : group1.keySet())
+		{
+			System.out.println(uid + ": " + group1.get(uid).size());
 		}
 
 		
