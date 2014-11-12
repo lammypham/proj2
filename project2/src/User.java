@@ -155,4 +155,10 @@ public class User {
 	{
 		return _jobsHistory;
 	}
+	
+	public void printTable()
+	{
+		System.out.println ("ID: " +_id + "City: " +_city+ "State: " +_state+ "Country: " +_country+ "Zipcode: " +_zipcode+ "Degree: " +_degree+ "Major " +_major
+				+ "Grad date: " +_gradDate+ "Work Hist Count: " +_workHistCount+ "Current Emp: " + _currentEmp+ "Total Yrs Exp: " + _totalYrsExp+ "Managed: " +_manage+ "ManageCount: " +_manageCount);
+	}
 }

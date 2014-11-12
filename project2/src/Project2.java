@@ -38,13 +38,31 @@ public class Project2 {
 		System.out.println("Finish");
 		
 		//currentEmp: yes manage:yes
-		Map<Integer,List<User>> group1 = new HashMap<Integer,List<User>>();
+		Map<Integer,User> group1 = new HashMap<Integer,User>();
 		//currentEmp: yes manage:no
 		Map<Integer,User> group2 = new HashMap<Integer,User>();
 		//currentEmp: no manage:yes
 		Map<Integer,User> group3 = new HashMap<Integer,User>();
 		//currentEmp: no manage:no
 		Map<Integer,User> group4 = new HashMap<Integer,User>();
+		
+		//currentEmp: yes workhistcount: <5
+		Map<Integer,User> group5 = new HashMap<Integer,User>();
+		//currentEmp: yes workhistcount:>5
+		Map<Integer,User> group6 = new HashMap<Integer,User>();
+		//currentEmp: no workhistcount:<5
+		Map<Integer,User> group7 = new HashMap<Integer,User>();
+		//currentEmp: no workhistcount:>5
+		Map<Integer,User> group8 = new HashMap<Integer,User>();
+		
+		//currentEmp: yes totalyrsexp: <5
+		Map<Integer,User> group9 = new HashMap<Integer,User>();
+		//currentEmp: yes totalyrsexp:>5
+		Map<Integer,User> group10 = new HashMap<Integer,User>();
+		//currentEmp: no totalyrsexp:<5
+		Map<Integer,User> group11 = new HashMap<Integer,User>();
+		//currentEmp: no totalyrsexp:>5
+		Map<Integer,User> group12 = new HashMap<Integer,User>();
 		
 		
 		// using k means to find the distance of 3 nominal attributes
@@ -54,39 +72,118 @@ public class Project2 {
 		for(Integer uid : _usersMap.keySet())
 		{
 			User u = _usersMap.get(uid);
-			List<User> list1 = new ArrayList();
-			
+
 			if (u.getCurrentEmp().equalsIgnoreCase("yes"))
 			{
 				if (u.getManage().equalsIgnoreCase("yes"))
 				{
 					//if match add to list, add record
-					list1.add(u);
-					group1.put(uid, list1);
+					
+					group1.put(uid, u);
 				}
 				else
 				{
+					
 					group2.put(uid,u);
 				}
 			}
 			else{
 				if (u.getManage().equalsIgnoreCase("yes"))
 				{
+					
 					group3.put(uid,u);
 				}
 				else
 				{
+					
 					group4.put(uid, u);
 				}
 			}
 		}
 		
-		for (Integer uid : group1.keySet())
+		for (Integer uid: _usersMap.keySet())
 		{
-			System.out.println(uid + ": " + group1.get(uid).size());
+			User u = _usersMap.get(uid);
+			if (u.getCurrentEmp().equalsIgnoreCase("yes"))
+			{
+				if(u.getWorkHistCount() < 5 )
+				{
+					group5.put(uid, u);
+				}
+				else
+				{
+					group6.put(uid,u);
+				}
+			}
+			else
+			{
+				if(u.getWorkHistCount() < 5)
+				{
+					group7.put(uid,u);
+				}
+				else
+				{
+					group8.put(uid,u);
+				}
+			}
 		}
-
+		for (Integer uid : _usersMap.keySet())
+		{
+			User u = _usersMap.get(uid);
+			if (u.getCurrentEmp().equalsIgnoreCase("yes"))
+			{
+				if(u.getWorkHistCount() < 5)
+				{
+					group9.put(uid,u);
+				}
+				else
+				{
+					group10.put(uid,u);
+				}
+			}
+			else
+			{
+				if(u.getWorkHistCount() < 5)
+				{
+					group11.put(uid,u);
+				}
+				else
+				{
+					group12.put(uid,u);
+				}
+			}
+		}
 		
+		
+		
+		System.out.println("Group9: " +group9.size());
+		System.out.println("Group10: " +group10.size());
+		System.out.println("Group11: " +group11.size());
+		System.out.println("Group12: " +group12.size());
+		Integer total = group9.size() + group10.size() + group11.size()+group12.size();
+		
+		System.out.println("total: "+ total);
+		System.out.println("users: " + _usersMap.size());
+		
+		
+		
+		Float d1 = processKDistance(group1.size(), group2.size(), group3.size(), group4.size());
+		Float d2 = processKDistance(group5.size(), group6.size(), group7.size(), group8.size());
+		Float d3 = processKDistance(group9.size(), group10.size(), group11.size(), group12.size());
+		System.out.println("d1: " + d1);
+		System.out.println("d2: " + d2);
+		System.out.println("d3: " + d3);
+	}
+	
+	private Float processKDistance(int a, int b, int c, int d)
+	{
+		int t1 = a + c;
+		int t2 = b + d;
+		
+		Float x =  (float) ((a/(float)t1) - (b/(float)t2));
+		Float y = (float) ((c/(float)t1) - (d/(float)t2));
+		
+		return (float) (Math.abs(x) + Math.abs(y));
 	}
 	
 	private void processUser(File inputDir) throws Exception
