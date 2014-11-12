@@ -55,13 +55,13 @@ public class Project2 {
 		//currentEmp: no workhistcount:>5
 		Map<Integer,User> group8 = new HashMap<Integer,User>();
 		
-		//currentEmp: yes totalyrsexp: <5
+		//currentEmp: yes totalyrsexp: <10
 		Map<Integer,User> group9 = new HashMap<Integer,User>();
-		//currentEmp: yes totalyrsexp:>5
+		//currentEmp: yes totalyrsexp:>10
 		Map<Integer,User> group10 = new HashMap<Integer,User>();
-		//currentEmp: no totalyrsexp:<5
+		//currentEmp: no totalyrsexp:<10
 		Map<Integer,User> group11 = new HashMap<Integer,User>();
-		//currentEmp: no totalyrsexp:>5
+		//currentEmp: no totalyrsexp:>10
 		Map<Integer,User> group12 = new HashMap<Integer,User>();
 		
 		
@@ -132,7 +132,7 @@ public class Project2 {
 			User u = _usersMap.get(uid);
 			if (u.getCurrentEmp().equalsIgnoreCase("yes"))
 			{
-				if(u.getWorkHistCount() < 5)
+				if(u.getTotalYrsExp() < 10)
 				{
 					group9.put(uid,u);
 				}
@@ -143,7 +143,7 @@ public class Project2 {
 			}
 			else
 			{
-				if(u.getWorkHistCount() < 5)
+				if(u.getTotalYrsExp() < 10)
 				{
 					group11.put(uid,u);
 				}
@@ -173,6 +173,66 @@ public class Project2 {
 		System.out.println("d1: " + d1);
 		System.out.println("d2: " + d2);
 		System.out.println("d3: " + d3);
+		
+		//compare u2 records to u1 records and calculate weighted distance
+		float temp1 = 0;
+		float temp2 = 0;
+		float temp3 = 0;
+		float tempTotal  = 0;
+		Map<Integer,Float> userKNN = new HashMap<Integer, Float>();
+		
+		for (Integer uid2 : _users2Map.keySet())
+		{
+
+			for (Integer uid1: _usersMap.keySet())
+			{
+				User u2 = _users2Map.get(uid2);
+				User u1 = _usersMap.get(uid1);
+
+				if(u1.getManage() != null && u2.getManage() != null)
+				{
+					if(u1.getManage().equalsIgnoreCase(u2.getManage()))
+					{
+						temp1 = 0;
+					}
+					else
+					{
+						temp1 = d1*d1;
+					}
+
+				}
+				else
+				{
+					temp1 = d1*d1;
+				}
+							
+				if ((u1.getWorkHistCount() < 5 && u2.getWorkHistCount() < 5) || (u1.getWorkHistCount() > 5 && u2.getWorkHistCount() > 5))
+				{
+					temp2 = 0;
+				}
+				else
+				{
+					temp2 = d2*d2;
+				}
+				if ((u1.getTotalYrsExp() < 10 && u2.getTotalYrsExp() <10) || (u2.getTotalYrsExp() > 10 && u2.getTotalYrsExp() > 10))
+				{
+					temp3 = 0;
+				}
+				else
+				{
+					temp3 = d3*d3;
+				}
+				
+
+				tempTotal = temp1 + temp2 + temp3;
+				System.out.println("temp1: " + temp1 + " temp2: " + temp2 + " temp3: " + temp3);
+				System.out.println("total: " + tempTotal);
+				userKNN.put(uid1, tempTotal);
+				tempTotal = 0;
+				temp1 = 0; temp2 = 0; temp3 = 0;
+			}
+		}
+		
 	}
 	
 	private Float processKDistance(int a, int b, int c, int d)
@@ -251,6 +311,7 @@ public class Project2 {
 			
 			_jobsMap.put(jobs.getId(), jobs);
 		}
+		br.close();
 	}
 	
 	private void processUserHistory(File inputDir) throws Exception
