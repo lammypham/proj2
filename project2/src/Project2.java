@@ -314,20 +314,28 @@ public class Project2 {
 
 		*/
 		String[] exclude = {"the", "to", "and", "in", "a", "or", "with","at","of","not","&", "","an", "/"};
+		int newCount = 0;
 		for(Integer u2id : predictionMap.keySet())
 		{
+			
 			List<PredictionResult> lst = predictionMap.get(u2id);
 			for(PredictionResult pr :lst)
 			{
 				List<App> apps = _apps2Map.get(pr.getU1());
+				//List<App> apps = _appsMap.get(u2id);
 				for(App a : apps)
 				{
 					Jobs job = _jobsMap.get(a.getJobId());
+					
 					User user = _users2Map.get(u2id);
+
 					//System.out.println("u2id: " + u2id + " - " + a.getJobId() + " score: " + pr.getValue());
+					
 					String major = user.getMajor();
 					String reqs = job.getDesc().toLowerCase();
+					String title1 = job.getTitle();
 					String[] ar = major.split(" ");
+
 					for(int i=0; i < ar.length; i++)
 					{
 						String w = ar[i];
@@ -344,10 +352,12 @@ public class Project2 {
 						{
 							String b = base(w).toLowerCase();
 							//System.out.println(String.format("%s - %s", w,  base(w)));
-							int found = b.indexOf(reqs);
+							int found = reqs.indexOf(b);
 							if(found != -1)
 							{
-								System.out.println(String.format("word: %s baseword: %s - %d ",major,b,found));
+								System.out.println(job.getTitle());
+								System.out.println(String.format("uid: %d jobid: %d Major: %s baseword: %s - %d ",u2id, a.getJobId(),major,b,found));
+								newCount = newCount + 1;
 								//System.out.println(reqs);
 								//System.out.println(_jobsMap.size());
 							}
@@ -355,11 +365,14 @@ public class Project2 {
 							//System.out.println(b);
 						}
 					}
+
 				}
 			}
 			
 		}
+		System.out.println(newCount);
 		System.out.println(selectedUsers.size());
+		
 		
 		
 	}
@@ -522,7 +535,7 @@ public class Project2 {
 
 	private String base(String str)
 	{
-		String[] suffix = {"ing","er","able","ational","tional","ate","ive","ful","ation","ator","ment","tions" };
+		String[] suffix = {"ing","er","able","ational","tional","ate","ive","ful","ation","ator","ment","tions","ess" };
 		String s = str;
 		for(int i=0; i < suffix.length; i++)
 		{
