@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import scratch.test;
+
 
 public class Project2 {
 	SimpleDateFormat _sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -156,23 +158,23 @@ public class Project2 {
 		
 		
 		
-		System.out.println("Group9: " +group9.size());
-		System.out.println("Group10: " +group10.size());
-		System.out.println("Group11: " +group11.size());
-		System.out.println("Group12: " +group12.size());
+		//System.out.println("Group9: " +group9.size());
+		//System.out.println("Group10: " +group10.size());
+		//System.out.println("Group11: " +group11.size());
+		//System.out.println("Group12: " +group12.size());
 		Integer total = group9.size() + group10.size() + group11.size()+group12.size();
 		
-		System.out.println("total: "+ total);
-		System.out.println("users: " + _usersMap.size());
+		//System.out.println("total: "+ total);
+		//System.out.println("users: " + _usersMap.size());
 		
 		
 		
 		Float d1 = processKDistance(group1.size(), group2.size(), group3.size(), group4.size());
 		Float d2 = processKDistance(group5.size(), group6.size(), group7.size(), group8.size());
 		Float d3 = processKDistance(group9.size(), group10.size(), group11.size(), group12.size());
-		System.out.println("d1: " + d1);
-		System.out.println("d2: " + d2);
-		System.out.println("d3: " + d3);
+		//System.out.println("d1: " + d1);
+		//System.out.println("d2: " + d2);
+		//System.out.println("d3: " + d3);
 		
 		//compare u2 records to u1 records and calculate weighted distance
 		float temp1 = 0;
@@ -180,10 +182,11 @@ public class Project2 {
 		float temp3 = 0;
 		float tempTotal  = 0;
 		Map<Integer,Float> userKNN = new HashMap<Integer, Float>();
+		List<PredictionResult> selectedUsers = new ArrayList<PredictionResult>();
 		
 		for (Integer uid2 : _users2Map.keySet())
 		{
-
+			userKNN.clear();
 			for (Integer uid1: _usersMap.keySet())
 			{
 				User u2 = _users2Map.get(uid2);
@@ -222,16 +225,123 @@ public class Project2 {
 				{
 					temp3 = d3*d3;
 				}
-				
+				tempTotal = temp1 + temp2 + temp3;				
+				if(!(u1.getMajor().equalsIgnoreCase(u2.getMajor())))
+				{
+					tempTotal = (float) (tempTotal +.125);
+					//System.out.println("added major - " + tempTotal);
 
-				tempTotal = temp1 + temp2 + temp3;
-				System.out.println("temp1: " + temp1 + " temp2: " + temp2 + " temp3: " + temp3);
-				System.out.println("total: " + tempTotal);
+				}
+				
+				if(!(u1.getDegree().equalsIgnoreCase(u2.getDegree())))
+				{
+					tempTotal = (float) (tempTotal +.125);
+					//System.out.println("added degree - " + tempTotal);
+
+				}
+				if(!(u1.getCity().equals(u2.getCity())))
+				{
+					tempTotal = (float) (tempTotal +.125);
+					//System.out.println("added city - " + tempTotal);
+
+				}
+				if(!(u1.getZipcode().equalsIgnoreCase(u2.getZipcode())))
+				{
+					tempTotal = (float) (tempTotal +.125);
+					//System.out.println("added zipcode - " + tempTotal);
+				}
+				if(!(u1.getState().equalsIgnoreCase(u2.getState())))
+				{
+					tempTotal = (float) (tempTotal +.125);
+					//System.out.println("added state - " + tempTotal);
+
+				}
+				if(!(u1.getCountry().equalsIgnoreCase(u2.getCountry())))
+				{
+					tempTotal = (float) (tempTotal +.125);
+					//System.out.println("added country - " + tempTotal);
+
+				}
+
+				//System.out.println("temp1: " + temp1 + " temp2: " + temp2 + " temp3: " + temp3);
+				//System.out.println("total: " + tempTotal);
 				userKNN.put(uid1, tempTotal);
+				
+				//rest values
 				tempTotal = 0;
 				temp1 = 0; temp2 = 0; temp3 = 0;
 			}
+			//search for closest u1 value that has a t2 application
+			Integer minUid = null;
+			float minTotal = (float)999999;
+			for(Integer i : userKNN.keySet())
+			{
+				float f = userKNN.get(i);
+				if(f < minTotal)
+				{
+					User u = _usersMap.get(i);
+					List<App> t2 = _apps2Map.get(i);
+					if(t2 != null)
+					{
+						minUid = i;
+						minTotal = f;
+					}
+				}
+			}
+			if(minUid != null)
+			{
+				PredictionResult p = new PredictionResult(uid2, minUid, minTotal);
+				selectedUsers.add(p);
+			}
 		}
+		Map<Integer, List<PredictionResult>> predictionMap = new HashMap<Integer, List<PredictionResult>>();
+		for(PredictionResult p : selectedUsers)
+		{
+			List<PredictionResult> lst = predictionMap.get(p.getU2());
+			if(lst == null)
+			{
+				lst = new ArrayList<PredictionResult>();
+				predictionMap.put(p.getU2(), lst);
+			}
+			lst.add(p);
+		}
+		/*
+		String[] exclude = {"the", "to", "and", "in", "a", "or", "with"};
+		String s = "Major in Accounting with minor in Engineering";
+		String[] ar = s.split(" ");
+		for(int i=0; i < ar.length; i++)
+		{
+			String w = ar[i];
+			boolean cont = true;
+			for(int j=0; j < exclude.length; j++)
+			{
+				if(w.equalsIgnoreCase(exclude[j]))
+				{
+					cont = false;
+					break;
+				}
+			}
+			if(cont)
+			{
+				System.out.println(String.format("%s - %s", w,  base(w)));				
+			}
+		}
+		*/
+		for(Integer u2id : predictionMap.keySet())
+		{
+			List<PredictionResult> lst = predictionMap.get(u2id);
+			for(PredictionResult pr :lst)
+			{
+				List<App> apps = _apps2Map.get(pr.getU1());
+				for(App a : apps)
+				{
+					System.out.println("u2id: " + u2id + " - " + a.getJobId() + " score: " + pr.getValue());
+				}
+			}
+			
+		}
+		System.out.println(selectedUsers.size());
+		
 		
 	}
 	
@@ -335,8 +445,9 @@ public class Project2 {
 
 	
 	private void processApps(File inputDir) throws Exception
+
 	{
-		Date t2 = _sdf2.parse("2014-04-09 00:00:00");
+		Date t2 = _sdf2.parse("2012-04-09 00:00:00");
 		//System.out.println(t2.toString());
 		File appsFile = new File(inputDir, "apps.tsv");
 		BufferedReader br = new BufferedReader(new FileReader(appsFile));
@@ -344,32 +455,55 @@ public class Project2 {
 		while((line = br.readLine()) != null)
 		{
 			String[] ar = line.split("\t");
-			App app = new App(Integer.valueOf(ar[0]), _sdf2.parse(ar[1]), Integer.valueOf(ar[2]));
-			if(app.getDate().after(t2))
+			Integer jobId = Integer.valueOf(ar[2]);
+			Jobs job = _jobsMap.get(jobId);
+			if(job != null)
 			{
-				List<App> list = _apps2Map.get(app.getUserId());
-				if(list == null)
+				if(job.getEnd() == null || job.getEnd().after(t2))
 				{
-					list = new ArrayList<App>();
-					_apps2Map.put(app.getUserId(), list);
-				}
-				list.add(app);
-			}
+					App app = new App(Integer.valueOf(ar[0]), _sdf2.parse(ar[1]), jobId);
+			
+					if((app.getDate().after(t2)))
+					{
+						List<App> list = _apps2Map.get(app.getUserId());
+						if(list == null)
+						{
+							list = new ArrayList<App>();
+							_apps2Map.put(app.getUserId(), list);
+						}
+						list.add(app);
+					}
 				
-			else{
+					else{
 
-				List<App> list = _appsMap.get(app.getUserId());
-				if(list == null)
-				{
-					list = new ArrayList<App>();
-					_appsMap.put(app.getUserId(), list);
+						List<App> list = _appsMap.get(app.getUserId());
+						if(list == null)
+						{
+							list = new ArrayList<App>();
+							_appsMap.put(app.getUserId(), list);
+						}
+						list.add(app);
+							
+					}
 				}
-				list.add(app);
-					
 			}
-
 		}
 		br.close();
+	}
+
+	private String base(String str)
+	{
+		String[] suffix = {"ing","er"};
+		String s = str;
+		for(int i=0; i < suffix.length; i++)
+		{
+			boolean b = str.toLowerCase().endsWith(suffix[i]);
+			if(b)
+			{
+				s = str.substring(0, str.length() - suffix[i].length());
+			}
+		}
+		return s;
 	}
 	
 	/**
