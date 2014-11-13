@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import scratch.test;
 
 
 public class Project2 {
@@ -20,6 +19,7 @@ public class Project2 {
 	SimpleDateFormat _sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	private Map<Integer, List<App>> _appsMap = new HashMap<Integer, List<App>>();
 	private Map<Integer, User> _usersMap = new HashMap<Integer, User>();
+	private Map<Integer, User> _users1Map = new HashMap<Integer, User>();
 	private Map<Integer, Jobs> _jobsMap = new HashMap<Integer, Jobs>();
 	private Map<Integer, List<App>> _apps2Map = new HashMap<Integer, List<App>>();
 	private Map<Integer, User> _users2Map = new HashMap<Integer,User>();
@@ -31,6 +31,8 @@ public class Project2 {
 		processUser(inDir);
 		System.out.println("Processing User2");
 		processUser2(inDir);
+		System.out.println("Processing User1");
+		processUser1();
 		System.out.println("Processing Jobs");
 		processJobs(inDir);
 		System.out.println("Processing Apps");
@@ -71,9 +73,9 @@ public class Project2 {
 
 		// find the distance between the nominal attributes for u1
 		// use the weighted distance to find the record of u2 and find smallest value
-		for(Integer uid : _usersMap.keySet())
+		for(Integer uid : _users1Map.keySet())
 		{
-			User u = _usersMap.get(uid);
+			User u = _users1Map.get(uid);
 
 			if (u.getCurrentEmp().equalsIgnoreCase("yes"))
 			{
@@ -103,9 +105,9 @@ public class Project2 {
 			}
 		}
 		
-		for (Integer uid: _usersMap.keySet())
+		for (Integer uid: _users1Map.keySet())
 		{
-			User u = _usersMap.get(uid);
+			User u = _users1Map.get(uid);
 			if (u.getCurrentEmp().equalsIgnoreCase("yes"))
 			{
 				if(u.getWorkHistCount() < 5 )
@@ -129,9 +131,9 @@ public class Project2 {
 				}
 			}
 		}
-		for (Integer uid : _usersMap.keySet())
+		for (Integer uid : _users1Map.keySet())
 		{
-			User u = _usersMap.get(uid);
+			User u = _users1Map.get(uid);
 			if (u.getCurrentEmp().equalsIgnoreCase("yes"))
 			{
 				if(u.getTotalYrsExp() < 10)
@@ -187,10 +189,10 @@ public class Project2 {
 		for (Integer uid2 : _users2Map.keySet())
 		{
 			userKNN.clear();
-			for (Integer uid1: _usersMap.keySet())
+			for (Integer uid1: _users1Map.keySet())
 			{
 				User u2 = _users2Map.get(uid2);
-				User u1 = _usersMap.get(uid1);
+				User u1 = _users1Map.get(uid1);
 
 				if(u1.getManage() != null && u2.getManage() != null)
 				{
@@ -279,7 +281,7 @@ public class Project2 {
 				float f = userKNN.get(i);
 				if(f < minTotal)
 				{
-					User u = _usersMap.get(i);
+					User u = _users1Map.get(i);
 					List<App> t2 = _apps2Map.get(i);
 					if(t2 != null)
 					{
@@ -306,27 +308,12 @@ public class Project2 {
 			lst.add(p);
 		}
 		/*
-		String[] exclude = {"the", "to", "and", "in", "a", "or", "with"};
+		
 		String s = "Major in Accounting with minor in Engineering";
 		String[] ar = s.split(" ");
-		for(int i=0; i < ar.length; i++)
-		{
-			String w = ar[i];
-			boolean cont = true;
-			for(int j=0; j < exclude.length; j++)
-			{
-				if(w.equalsIgnoreCase(exclude[j]))
-				{
-					cont = false;
-					break;
-				}
-			}
-			if(cont)
-			{
-				System.out.println(String.format("%s - %s", w,  base(w)));				
-			}
-		}
+
 		*/
+		String[] exclude = {"the", "to", "and", "in", "a", "or", "with","at","of","not","&", "","an", "/"};
 		for(Integer u2id : predictionMap.keySet())
 		{
 			List<PredictionResult> lst = predictionMap.get(u2id);
@@ -335,7 +322,39 @@ public class Project2 {
 				List<App> apps = _apps2Map.get(pr.getU1());
 				for(App a : apps)
 				{
-					System.out.println("u2id: " + u2id + " - " + a.getJobId() + " score: " + pr.getValue());
+					Jobs job = _jobsMap.get(a.getJobId());
+					User user = _users2Map.get(u2id);
+					//System.out.println("u2id: " + u2id + " - " + a.getJobId() + " score: " + pr.getValue());
+					String major = user.getMajor();
+					String reqs = job.getDesc().toLowerCase();
+					String[] ar = major.split(" ");
+					for(int i=0; i < ar.length; i++)
+					{
+						String w = ar[i];
+						boolean cont = true;
+						for(int j=0; j < exclude.length; j++)
+						{
+							if(w.equalsIgnoreCase(exclude[j]))
+							{
+								cont = false;
+								break;
+							}
+						}
+						if(cont)
+						{
+							String b = base(w).toLowerCase();
+							//System.out.println(String.format("%s - %s", w,  base(w)));
+							int found = b.indexOf(reqs);
+							if(found != -1)
+							{
+								System.out.println(String.format("word: %s baseword: %s - %d ",major,b,found));
+								//System.out.println(reqs);
+								//System.out.println(_jobsMap.size());
+							}
+							//System.out.println(reqs);
+							//System.out.println(b);
+						}
+					}
 				}
 			}
 			
@@ -400,6 +419,18 @@ public class Project2 {
 		}
 		br.close();
 	}
+	private void processUser1() throws Exception
+	{
+		for (Integer uid : _usersMap.keySet())
+		{
+			User u = _users2Map.get(uid);
+			if (u == null)
+			{
+				_users1Map.put(uid, _usersMap.get(uid));
+			}
+		}
+	}
+	
 	private void processJobs(File inputDir) throws Exception
 	{
 		File jobsFile = new File(inputDir, "jobs.tsv");
@@ -441,8 +472,6 @@ public class Project2 {
 		}
 		br.close();
 	}
-	
-
 	
 	private void processApps(File inputDir) throws Exception
 
@@ -493,7 +522,7 @@ public class Project2 {
 
 	private String base(String str)
 	{
-		String[] suffix = {"ing","er"};
+		String[] suffix = {"ing","er","able","ational","tional","ate","ive","ful","ation","ator","ment","tions" };
 		String s = str;
 		for(int i=0; i < suffix.length; i++)
 		{
