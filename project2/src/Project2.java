@@ -1,9 +1,12 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -11,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 
 
@@ -292,7 +296,8 @@ public class Project2 {
 			}
 			if(minUid != null)
 			{
-				PredictionResult p = new PredictionResult(uid2, minUid, minTotal);
+				PredictionResult p = new PredictionResult(uid2, minUid);
+				p.setValue(minTotal);
 				selectedUsers.add(p);
 			}
 		}
@@ -307,13 +312,8 @@ public class Project2 {
 			}
 			lst.add(p);
 		}
-		/*
-		
-		String s = "Major in Accounting with minor in Engineering";
-		String[] ar = s.split(" ");
 
-		*/
-		String[] exclude = {"the", "to", "and", "in", "a", "or", "with","at","of","not","&", "","an", "/"};
+		String[] exclude = {"the", "to", "and", "in", "a", "or", "with","at","of","not","&", "","an", "/","-","rep"};
 		int newCount = 0;
 		for(Integer u2id : predictionMap.keySet())
 		{
@@ -322,58 +322,144 @@ public class Project2 {
 			for(PredictionResult pr :lst)
 			{
 				List<App> apps = _apps2Map.get(pr.getU1());
-				//List<App> apps = _appsMap.get(u2id);
+
 				for(App a : apps)
 				{
 					Jobs job = _jobsMap.get(a.getJobId());
-					
 					User user = _users2Map.get(u2id);
+					List<App> apps2 = _appsMap.get(u2id);
+					int wordMatch = 0;
+					if (apps2 !=null){
+						for (App a2 : apps2)
+						{
+							Jobs job2 = _jobsMap.get(a2.getJobId());
+							
+							
+							//System.out.println("u2id: " + u2id + " - " + a.getJobId() + " score: " + pr.getValue());
+							
+							String major = user.getMajor();
+							String reqs = job.getDesc().toLowerCase();
+							String title1 = job.getTitle().toLowerCase();
+							String title2 = job2.getTitle().toLowerCase();
+							String[] ar = title2.split(" ");
 
-					//System.out.println("u2id: " + u2id + " - " + a.getJobId() + " score: " + pr.getValue());
+							for(int i=0; i < ar.length; i++)
+							{
+								String w = ar[i];
+								boolean cont = true;
+								for(int j=0; j < exclude.length; j++)
+								{
+									if(w.equalsIgnoreCase(exclude[j]))
+									{
+										cont = false;
+										break;
+									}
+								}
+								if(cont)
+								{
+									String b = base(w).toLowerCase();
+									//System.out.println(String.format("%s - %s", w,  base(w)));
+									int found = title1.indexOf(b);
+									if(found != -1)
+									{
+										//System.out.println(job.getTitle());
+										//System.out.println(String.format("uid: %d jobid: %d Uid2 Job Title: %s baseword: %s - %d ",u2id, a.getJobId(),title2,b,found));
+										newCount = newCount + 1;
+										wordMatch = wordMatch +1;
+
+									}
+
+								}
+							}
+						}
+						
+						
+						//test for location distance
+						if(user.getZipcode().equalsIgnoreCase(job.getZipcode()))
+						{
+							wordMatch++;
+						}
+						if(user.getCity().equalsIgnoreCase(job.getCity()))
+						{
+							wordMatch++;
+						}
+						if(user.getState().equalsIgnoreCase(job.getState()))
+						{
+							wordMatch++;
+						}
+						if(user.getCountry().equalsIgnoreCase(job.getCountry()))
+						{
+							wordMatch++;
+						}
+						pr.setCount(wordMatch);
+						pr.setJobID(job.getId());
+						//System.out.println("word match count: " + wordMatch + " for jobID: " + a.getJobId() );
+						wordMatch = 0;
 					
-					String major = user.getMajor();
-					String reqs = job.getDesc().toLowerCase();
-					String title1 = job.getTitle();
-					String[] ar = major.split(" ");
-
-					for(int i=0; i < ar.length; i++)
-					{
-						String w = ar[i];
-						boolean cont = true;
-						for(int j=0; j < exclude.length; j++)
-						{
-							if(w.equalsIgnoreCase(exclude[j]))
-							{
-								cont = false;
-								break;
-							}
-						}
-						if(cont)
-						{
-							String b = base(w).toLowerCase();
-							//System.out.println(String.format("%s - %s", w,  base(w)));
-							int found = reqs.indexOf(b);
-							if(found != -1)
-							{
-								System.out.println(job.getTitle());
-								System.out.println(String.format("uid: %d jobid: %d Major: %s baseword: %s - %d ",u2id, a.getJobId(),major,b,found));
-								newCount = newCount + 1;
-								//System.out.println(reqs);
-								//System.out.println(_jobsMap.size());
-							}
-							//System.out.println(reqs);
-							//System.out.println(b);
-						}
 					}
-
+					
 				}
 			}
 			
 		}
-		System.out.println(newCount);
+
+		Map<Integer, PredictionResult> pr = new HashMap<Integer, PredictionResult>();
+
 		System.out.println(selectedUsers.size());
 		
+		for (Integer u2id: predictionMap.keySet())
+		{
+			List<PredictionResult> lst = predictionMap.get(u2id);
+			
+			for(PredictionResult p : lst)
+			{
+				if(p.getJobID() != 0)
+				{	pr.put(u2id, p);
+					//System.out.println(lst.size());
+					//p.printResult();
+					//System.out.print(pr.getU2() + " " + pr.getJobID() + " " + pr.getCount());
+					//System.out.println();
+				}
+			}
+		}
 		
+		for(Integer u2id: pr.keySet())
+		{
+			PredictionResult resultList = pr.get(u2id);
+			//resultList.printResult();
+		}
+		
+		Map<PredictionResult, Integer> SortMap = new TreeMap<PredictionResult, Integer>(
+				  new Comparator<PredictionResult>() {
+				    @Override public int compare(PredictionResult p1, PredictionResult p2) {
+				      if(p2.getCount() == p1.getCount())
+				    	  return p1.getJobID() - p2.getJobID();
+				      else
+				    	return p2.getCount() - p1.getCount(); 
+				      
+				    }
+				  }
+				);
+		
+		int index = 1;
+		for(Integer u2id: pr.keySet())
+		{
+			PredictionResult p = pr.get(u2id);
+			SortMap.put(p, index);
+			index++;
+		}
+		PrintWriter output = new PrintWriter("output.tsv","UTF-8");
+		int top = 1;
+		for(PredictionResult sortPR : SortMap.keySet())
+		{
+			if (top <151)
+			{
+				sortPR.printResult();
+				output.println(String.format("%d\t\t%d",sortPR.getU2(),sortPR.getJobID()));
+				top++;
+			}
+		}
+		output.close();
 		
 	}
 	
@@ -514,6 +600,7 @@ public class Project2 {
 							_apps2Map.put(app.getUserId(), list);
 						}
 						list.add(app);
+						
 					}
 				
 					else{
@@ -525,7 +612,6 @@ public class Project2 {
 							_appsMap.put(app.getUserId(), list);
 						}
 						list.add(app);
-							
 					}
 				}
 			}
@@ -535,7 +621,7 @@ public class Project2 {
 
 	private String base(String str)
 	{
-		String[] suffix = {"ing","er","able","ational","tional","ate","ive","ful","ation","ator","ment","tions","ess" };
+		String[] suffix = {"ing","able","ational","tional","ate","ive","ful","ation","ator","ment","tions","ess","ist" };
 		String s = str;
 		for(int i=0; i < suffix.length; i++)
 		{
