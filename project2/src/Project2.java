@@ -1,6 +1,12 @@
+/*
+ * Lam Pham
+ * 1000744010
+ */
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -17,7 +23,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 
-
 public class Project2 {
 	SimpleDateFormat _sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 	SimpleDateFormat _sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -31,6 +36,8 @@ public class Project2 {
 	public void execute(String inputDir, String outputFile) throws Exception
 	{
 		File inDir = new File(inputDir);
+		File outFile = new File(outputFile + "/output.tsv");
+		
 		System.out.println("Processing User");
 		processUser(inDir);
 		System.out.println("Processing User2");
@@ -43,7 +50,7 @@ public class Project2 {
 		processApps(inDir);
 		System.out.println("Processing User History");
 		processUserHistory(inDir);
-		System.out.println("Finish");
+		System.out.println("Processing Prediction Tool");
 		
 		//currentEmp: yes manage:yes
 		Map<Integer,User> group1 = new HashMap<Integer,User>();
@@ -90,20 +97,17 @@ public class Project2 {
 					group1.put(uid, u);
 				}
 				else
-				{
-					
+				{	
 					group2.put(uid,u);
 				}
 			}
 			else{
 				if (u.getManage().equalsIgnoreCase("yes"))
-				{
-					
+				{	
 					group3.put(uid,u);
 				}
 				else
 				{
-					
 					group4.put(uid, u);
 				}
 			}
@@ -163,24 +167,13 @@ public class Project2 {
 		}
 		
 		
-		
-		//System.out.println("Group9: " +group9.size());
-		//System.out.println("Group10: " +group10.size());
-		//System.out.println("Group11: " +group11.size());
-		//System.out.println("Group12: " +group12.size());
 		Integer total = group9.size() + group10.size() + group11.size()+group12.size();
 		
-		//System.out.println("total: "+ total);
-		//System.out.println("users: " + _usersMap.size());
-		
-		
-		
+
 		Float d1 = processKDistance(group1.size(), group2.size(), group3.size(), group4.size());
 		Float d2 = processKDistance(group5.size(), group6.size(), group7.size(), group8.size());
 		Float d3 = processKDistance(group9.size(), group10.size(), group11.size(), group12.size());
-		//System.out.println("d1: " + d1);
-		//System.out.println("d2: " + d2);
-		//System.out.println("d3: " + d3);
+
 		
 		//compare u2 records to u1 records and calculate weighted distance
 		float temp1 = 0;
@@ -235,45 +228,38 @@ public class Project2 {
 				if(!(u1.getMajor().equalsIgnoreCase(u2.getMajor())))
 				{
 					tempTotal = (float) (tempTotal +.125);
-					//System.out.println("added major - " + tempTotal);
 
 				}
 				
 				if(!(u1.getDegree().equalsIgnoreCase(u2.getDegree())))
 				{
 					tempTotal = (float) (tempTotal +.125);
-					//System.out.println("added degree - " + tempTotal);
 
 				}
 				if(!(u1.getCity().equals(u2.getCity())))
 				{
 					tempTotal = (float) (tempTotal +.125);
-					//System.out.println("added city - " + tempTotal);
 
 				}
 				if(!(u1.getZipcode().equalsIgnoreCase(u2.getZipcode())))
 				{
 					tempTotal = (float) (tempTotal +.125);
-					//System.out.println("added zipcode - " + tempTotal);
 				}
 				if(!(u1.getState().equalsIgnoreCase(u2.getState())))
 				{
 					tempTotal = (float) (tempTotal +.125);
-					//System.out.println("added state - " + tempTotal);
 
 				}
 				if(!(u1.getCountry().equalsIgnoreCase(u2.getCountry())))
 				{
 					tempTotal = (float) (tempTotal +.125);
-					//System.out.println("added country - " + tempTotal);
 
 				}
 
-				//System.out.println("temp1: " + temp1 + " temp2: " + temp2 + " temp3: " + temp3);
-				//System.out.println("total: " + tempTotal);
+
 				userKNN.put(uid1, tempTotal);
 				
-				//rest values
+				//reset values
 				tempTotal = 0;
 				temp1 = 0; temp2 = 0; temp3 = 0;
 			}
@@ -301,6 +287,7 @@ public class Project2 {
 				selectedUsers.add(p);
 			}
 		}
+		
 		Map<Integer, List<PredictionResult>> predictionMap = new HashMap<Integer, List<PredictionResult>>();
 		for(PredictionResult p : selectedUsers)
 		{
@@ -312,8 +299,9 @@ public class Project2 {
 			}
 			lst.add(p);
 		}
-
-		String[] exclude = {"the", "to", "and", "in", "a", "or", "with","at","of","not","&", "","an", "/","-","rep"};
+		//word vector constraint
+		//match u2 t1 job title to u1 t2 job title. if match based on relevant user, then add count
+		String[] exclude = {"the", "to", "and", "in", "a", "or", "with","at","of","not","&", "","an", "/","-","rep","general","assistant"};
 		int newCount = 0;
 		for(Integer u2id : predictionMap.keySet())
 		{
@@ -333,10 +321,7 @@ public class Project2 {
 						for (App a2 : apps2)
 						{
 							Jobs job2 = _jobsMap.get(a2.getJobId());
-							
-							
-							//System.out.println("u2id: " + u2id + " - " + a.getJobId() + " score: " + pr.getValue());
-							
+
 							String major = user.getMajor();
 							String reqs = job.getDesc().toLowerCase();
 							String title1 = job.getTitle().toLowerCase();
@@ -358,12 +343,10 @@ public class Project2 {
 								if(cont)
 								{
 									String b = base(w).toLowerCase();
-									//System.out.println(String.format("%s - %s", w,  base(w)));
 									int found = title1.indexOf(b);
 									if(found != -1)
 									{
-										//System.out.println(job.getTitle());
-										//System.out.println(String.format("uid: %d jobid: %d Uid2 Job Title: %s baseword: %s - %d ",u2id, a.getJobId(),title2,b,found));
+										
 										newCount = newCount + 1;
 										wordMatch = wordMatch +1;
 
@@ -374,7 +357,7 @@ public class Project2 {
 						}
 						
 						
-						//test for location distance
+						//test for location distance of u2-t2 based on zipcode,city,state,country
 						if(user.getZipcode().equalsIgnoreCase(job.getZipcode()))
 						{
 							wordMatch++;
@@ -393,7 +376,6 @@ public class Project2 {
 						}
 						pr.setCount(wordMatch);
 						pr.setJobID(job.getId());
-						//System.out.println("word match count: " + wordMatch + " for jobID: " + a.getJobId() );
 						wordMatch = 0;
 					
 					}
@@ -405,7 +387,6 @@ public class Project2 {
 
 		Map<Integer, PredictionResult> pr = new HashMap<Integer, PredictionResult>();
 
-		System.out.println(selectedUsers.size());
 		
 		for (Integer u2id: predictionMap.keySet())
 		{
@@ -415,10 +396,7 @@ public class Project2 {
 			{
 				if(p.getJobID() != 0)
 				{	pr.put(u2id, p);
-					//System.out.println(lst.size());
-					//p.printResult();
-					//System.out.print(pr.getU2() + " " + pr.getJobID() + " " + pr.getCount());
-					//System.out.println();
+
 				}
 			}
 		}
@@ -426,7 +404,7 @@ public class Project2 {
 		for(Integer u2id: pr.keySet())
 		{
 			PredictionResult resultList = pr.get(u2id);
-			//resultList.printResult();
+
 		}
 		
 		Map<PredictionResult, Integer> SortMap = new TreeMap<PredictionResult, Integer>(
@@ -448,19 +426,21 @@ public class Project2 {
 			SortMap.put(p, index);
 			index++;
 		}
-		PrintWriter output = new PrintWriter("output.tsv","UTF-8");
+		
+		
+		FileWriter output = new FileWriter(outFile);
 		int top = 1;
 		for(PredictionResult sortPR : SortMap.keySet())
 		{
 			if (top <151)
 			{
 				sortPR.printResult();
-				output.println(String.format("%d\t\t%d",sortPR.getU2(),sortPR.getJobID()));
+				output.write(String.format("%d\t%d\n",sortPR.getU2(),sortPR.getJobID()));
 				top++;
 			}
 		}
 		output.close();
-		
+		System.out.println("Finish printing output.tsv in dir "+ outputFile);
 	}
 	
 	private Float processKDistance(int a, int b, int c, int d)
@@ -576,7 +556,6 @@ public class Project2 {
 
 	{
 		Date t2 = _sdf2.parse("2012-04-09 00:00:00");
-		//System.out.println(t2.toString());
 		File appsFile = new File(inputDir, "apps.tsv");
 		BufferedReader br = new BufferedReader(new FileReader(appsFile));
 		String line = br.readLine();
